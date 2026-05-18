@@ -203,4 +203,11 @@ Harsh-data-engineer-assignment/
 
 ---
 
+
+How I Used AI Tools
+Claude (claude.ai) was used to:
+
+Draft the initial pipeline structure and README outline
+Suggest try_to_date with coalesce for handling mixed date formats in PySpark.
+
 *Built by Harshal — May 2026*
