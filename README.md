@@ -180,7 +180,49 @@ Date parsing breaking on a new format
 
 The fix is simple: a monitoring alert that pages the on-call engineer if the quarantine rate exceeds 2% of daily rows.
 
+## Assumptions
 
+| Assumption | Reasoning |
+|------------|-----------|
+| `dayfirst=True` for ambiguous dates | Data originates from a non-US region (sugarcane farming) so `16/05/2026` means 16th May not May 16th |
+| NDVI valid range is strictly [-1, 1] | Per the assignment brief — any value outside this range is instrument error not a real reading |
+| `sensor_status = UNKNOWN` excluded from analysis | Cannot confirm sensor was healthy — safer to exclude than include |
+| Inner join on parcel_id | Every analysis row must have both readings and metadata — incomplete rows add noise |
+| 30-day window means days -30 to -1 before, 0 to +29 after | Sowing date itself (day 0) counted as first day of post-sowing period |
+| Orphan parcels are registration lag not decommissioned farms | They have recent active readings suggesting live sensors not retired ones |
+| Duplicate rows with identical values are ingestion errors | No two sensors on same parcel should produce identical readings on same day |
+
+---
+
+## What I'd Improve With More Time
+
+**1. Per-parcel NDVI anomaly detection**
+Flag individual parcels whose post-sowing NDVI lift is significantly below
+the crop-type average. If sugarcane average lift is +0.13 but PARCEL_015
+only shows +0.02 — that farm needs a field inspection. This turns the
+pipeline from descriptive to actionable.
+
+**2. Weather correlation analysis**
+Correlate `rainfall_mm` and `temperature_c` with NDVI change over the
+following 7 days. This would tell Carnot whether irrigation interventions
+are actually improving crop health — a direct business insight.
+
+**3. Confidence intervals on the analysis output**
+The current output is a single mean per crop type. With more time I'd add
+standard deviation and a 95% confidence interval — especially important
+for wheat where n=2 parcels makes the mean unreliable.
+
+**4. Automated quarantine alerting**
+Right now the quarantine table is written silently. With more time I'd add
+a monitoring alert if quarantine rate exceeds 2% of daily rows — so the
+operations team is notified about orphan parcels automatically rather than
+waiting for someone to query the table.
+
+**5. Historical baseline comparison**
+With more seasons of data, compare this year's NDVI growth curve against
+the historical average for each crop and region. A farmer could then see
+not just "my crop is growing" but "my crop is growing 15% slower than
+last year at this point in the season."
 
 | Tool | Purpose |
 |------|---------|
